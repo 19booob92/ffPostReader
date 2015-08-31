@@ -12,7 +12,7 @@ const ScriptableInputStream = CC("@mozilla.org/scriptableinputstream;1","nsIScri
 const observerService = Cc['@mozilla.org/observer-service;1'].getService(Ci.nsIObserverService);
 
 function observeRequest(channel, topic, data) {
-  let post = "X";
+  let post = null;
   
   if (!(channel instanceof Ci.nsIHttpChannel) ||
     !(channel instanceof Ci.nsIUploadChannel)) {
@@ -28,11 +28,9 @@ function observeRequest(channel, topic, data) {
       return post;
     }
     if (us instanceof Ci.nsIMultiplexInputStream) {
-      // Seeking in a nsIMultiplexInputStream effectively breaks the stream.
       return post;
     }
     if (!(us instanceof Ci.nsISeekableStream)) {
-      // Cannot seek within the stream :(
       return post;
     }
 
@@ -42,14 +40,12 @@ function observeRequest(channel, topic, data) {
     try {
       let is = new ScriptableInputStream(us);
 
-      // we'll read max 64k
       let available = Math.min(is.available(), 1 << 16);
       if (available) {
         post = is.read(available);
       }
     }
     finally {
-      // Always restore the stream position!
       us.seek(0, oldpos);
     }
   }
@@ -63,13 +59,12 @@ var observer = {
      observe : function(subject, topic, data) {
      var postData = observeRequest(subject, topic, data);
 	if (postData.length > 1) {
-     		saveLog(postData);
+     		saveLog(readFile() + "\n" + postData);
 	}
   }
 }
 
 observerService.addObserver(observer, 'http-on-modify-request', false);
-
 
 function saveLog(str){
   var textWriter = file.open(URI_TO_FILE, 'w');
@@ -84,15 +79,3 @@ function readFile(){
   return content;
 }
 
-var runner = ActionButton({
-    id: "runner",
-    label: "click to run",
-    icon: {
-      "16": "./dupa.png"
-    },
-    onClick: function(state) {
-	var oldContent = readFile();
-
-	saveLog(oldContent + '\n' + "text");
-    }
-  });
