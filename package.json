@@ -1,0 +1,12 @@
+{
+  "title": "ffPostLog",
+  "name": "ffplugins",
+  "version": "0.0.1",
+  "description": "ff hack",
+  "main": "index.js",
+  "author": "BooooB",
+  "engines": {
+    "firefox": ">=38.0a1"
+  },
+  "license": "GNU"
+}
